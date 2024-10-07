@@ -1,0 +1,72 @@
+import { ApiPropertyOptional } from '@nestjs/swagger'
+import { Transform } from 'class-transformer'
+import {
+  IsBoolean,
+  IsDate,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator'
+
+import { SortOrder } from '../../shared/constants/sort-order'
+import { PaginationParamsDto } from '../../shared/dtos/pagination-params.dto'
+
+export class {{capitalize name}}ParamsDto extends PaginationParamsDto {
+  @ApiPropertyOptional({
+    description: 'Search by name or content',
+    type: String,
+  })
+  @IsString({ message: 'Must be a string' })
+  @IsOptional()
+  search?: string
+
+  @ApiPropertyOptional({
+    description: 'Filter by status',
+    type: String,
+  })
+  @IsUUID(4, { message: 'Must be a valid UUID' })
+  @IsOptional()
+  state?: string
+
+  @ApiPropertyOptional({
+    description: 'Filter by author',
+    type: String,
+  })
+  @IsUUID(4, { message: 'Must be a valid UUID' })
+  @IsOptional()
+  createdBy?: string
+
+  @ApiPropertyOptional({
+    description: 'Filter by created at',
+    type: String,
+  })
+  @Transform(({ value }) => new Date(value as string))
+  @IsDate()
+  @IsOptional()
+  createdAt?: Date
+
+  @ApiPropertyOptional({
+    description: 'Filter by updated at',
+    type: String,
+  })
+  @Transform(({ value }) => new Date(value as string))
+  @IsDate()
+  @IsOptional()
+  updatedAt?: Date
+
+  @ApiPropertyOptional({
+    description: 'Sort by field',
+    type: String,
+  })
+  @IsString({ message: 'Must be a string' })
+  @IsOptional()
+  sortBy?: string
+
+  @ApiPropertyOptional({
+    description: 'Sort direction',
+    type: SortOrder,
+  })
+  @IsString({ message: 'Must be a asc or desc' })
+  @IsOptional()
+  sortOrder?: SortOrder
+}

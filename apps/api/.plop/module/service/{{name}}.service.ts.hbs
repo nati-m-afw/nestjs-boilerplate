@@ -1,0 +1,160 @@
+import { Injectable, UnauthorizedException } from '@nestjs/common'
+import { plainToInstance } from 'class-transformer'
+
+import { DataLookupService } from '../../data-lookup/services/data-lookup.service'
+import { Action } from '../../shared/acl/action.constant'
+import type { Actor } from '../../shared/acl/actor.constant'
+import { DtoType } from '../../shared/constants/dto-group'
+import { DataLookupType } from '../../shared/constants/lookup-type'
+import { AppLogger } from '../../shared/logger/logger.service'
+import type { RequestContext } from '../../shared/request-context/request-context.dto'
+import { UserService } from '../../user/services/user.service'
+import { {{ capitalize name }}AclService } from '../acl/{{ name }}.acl'
+import type { {{ capitalize name }}CreateInput } from '../dtos/{{ name }}-create-input.dto'
+import { {{ capitalize name }}Output } from '../dtos/{{ name }}-output.dto'
+import type { {{ capitalize name }}ParamsDto } from '../dtos/{{ name }}-params.dto'
+import type { {{ capitalize name }}UpdateInput } from '../dtos/{{ name }}-update-input.dto'
+import { {{ capitalize name }}Repository } from '../repository/{{ name }}.repository'
+
+@Injectable()
+export class {{ capitalize name }}Service {
+  constructor(
+    private repository: {{ capitalize name }}Repository,
+    private acl: {{ capitalize name }}AclService,
+    private dataLookupService: DataLookupService,
+    private userService: UserService,
+    private readonly logger: AppLogger,
+  ) {
+    this.logger.setContext({{ capitalize name }}Service.name)
+  }
+
+  private validatePermission(
+    actor: Actor,
+    action: Action,
+    returnBool = false,
+  ): void | boolean {
+    const isAllowed = this.acl.forActor(actor).canDoAction(action)
+
+    if (!isAllowed && !returnBool) {
+      throw new UnauthorizedException()
+    }
+
+    return isAllowed
+  }
+
+  async getAll{{ capitalize name }}s(ctx: RequestContext, filters: {{ capitalize name }}ParamsDto) {
+    this.logger.log(ctx, `${this.getAll{{ capitalize name }}s.name} was called`)
+
+    const actor: Actor = ctx.user!
+
+    const isAllowed = this.acl.forActor(actor).canDoAction(Action.List)
+
+    if (!isAllowed) {
+      throw new UnauthorizedException()
+    }
+
+    const [{{ name }}s, count] = await this.repository.getWithFilters({
+      search: filters.search,
+      state: filters.state,
+      createdBy: filters.createdBy,
+      createdAt: filters.createdAt,
+      updatedAt: filters.updatedAt,
+      sortBy: filters.sortBy,
+      sortOrder: filters.sortOrder,
+      limit: filters.limit,
+      offset: filters.offset,
+    })
+
+    const {{ name }}sOutput = plainToInstance({{ capitalize name }}Output, {{ name }}s, {
+      excludeExtraneousValues: true,
+    })
+
+    return {
+      {{ name }}s: {{ name }}sOutput,
+      count,
+    }
+  }
+
+  async get{{ capitalize name }}ById(ctx: RequestContext, id: string): Promise<{{ capitalize name }}Output> {
+    this.logger.log(ctx, `${this.get{{ capitalize name }}ById.name} was called`)
+
+    const actor: Actor = ctx.user!
+
+    const isAllowed = this.acl.forActor(actor).canDoAction(Action.Read)
+
+    if (!isAllowed) {
+      throw new UnauthorizedException()
+    }
+
+    const {{ name }} = await this.repository.getByIdWithRelations(id)
+
+    void this.repository.save({
+      ...{{ name }},
+    })
+
+    return plainToInstance({{ capitalize name }}Output, {{ name }}, {
+      excludeExtraneousValues: true,
+      groups: [DtoType.FULL],
+    })
+  }
+
+  async create{{ capitalize name }}(ctx: RequestContext, input: {{ capitalize name }}CreateInput) {
+    this.logger.log(ctx, `${this.create{{ capitalize name }}.name} was called`)
+
+    const state = await this.dataLookupService.getDefaultDataLookup(
+      ctx,
+      DataLookupType.OBJECT_STATE,
+    )
+
+    const createdBy = await this.userService.getUserById(
+      ctx,
+      ctx.user?.id ?? '',
+    )
+
+    const {{ name }} = this.repository.create({
+      ...input,
+      state,
+      createdBy,
+    })
+    const saved{{ capitalize name }} = await this.repository.save({{ name }})
+
+    return plainToInstance({{ capitalize name }}Output, saved{{ capitalize name }}, {
+      excludeExtraneousValues: true,
+    })
+  }
+
+  async update{{ capitalize name }}(
+    ctx: RequestContext,
+    id: string,
+    input: {{ capitalize name }}UpdateInput,
+  ) {
+    this.logger.log(ctx, `${this.update{{ capitalize name }}.name} was called`)
+
+    const {{ name }} = await this.repository.getById(id)
+
+    const actor: Actor = ctx.user!
+
+    const isAllowed = this.acl
+      .forActor(actor)
+      .canDoAction(Action.Update, {{ name }})
+
+    if (!isAllowed) {
+      throw new UnauthorizedException()
+    }
+
+    const state = await this.dataLookupService.getDataLookupById(
+      ctx,
+      input.state,
+    )
+
+    const updated{{ capitalize name }} = await this.repository.save({
+      ...{{ name }},
+      ...input,
+      state,
+    })
+
+    return plainToInstance({{ capitalize name }}Output, updated{{ capitalize name }}, {
+      excludeExtraneousValues: true,
+    })
+  }
+}

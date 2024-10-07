@@ -1,0 +1,21 @@
+import { ApiProperty } from '@nestjs/swagger'
+import {
+  IsBoolean,
+  IsNotEmpty,
+  IsString,
+  IsUUID,
+  Length,
+} from 'class-validator'
+
+export class {{capitalize name}}CreateInput {
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  @Length(3, 255)
+  title: string
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsUUID('4')
+  state: string
+}

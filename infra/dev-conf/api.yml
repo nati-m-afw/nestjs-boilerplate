@@ -1,0 +1,25 @@
+services:
+  api:
+    build:
+      context: ../../apps/api
+      dockerfile: dev.Dockerfile
+      args:
+        - APP_ENV
+        - APP_PORT
+    container_name: api
+    restart: no
+    ports:
+      - $APP_PORT:$APP_PORT
+      - $COMPODOC_PORT:$COMPODOC_PORT
+    volumes:
+      - ../../apps/api:/home/backend
+    command: yarn start:dev
+    env_file:
+      - ../../.env
+    depends_on:
+      - db
+      - redis
+
+networks:
+  default:
+    name: netrunner

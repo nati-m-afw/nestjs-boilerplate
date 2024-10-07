@@ -1,0 +1,7 @@
+import { NotFoundException } from '@nestjs/common'
+
+export class {{capitalize name}}NotFoundException extends NotFoundException {
+  constructor(id: string) {
+    super(`{{capitalize name}} with id ${id} not found`)
+  }
+}

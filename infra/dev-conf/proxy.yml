@@ -1,0 +1,17 @@
+services:
+  proxy: 
+    image: nginx:alpine
+    container_name: proxy
+    restart: always
+    volumes:
+        - ../../proxy/dev-conf/:/etc/nginx/conf.d/
+        - ../../proxy/data/logs:/var/log/nginx
+    ports:
+        - 80:80
+    depends_on:
+        - api 
+    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+
+networks:
+  default:
+    name: netrunner

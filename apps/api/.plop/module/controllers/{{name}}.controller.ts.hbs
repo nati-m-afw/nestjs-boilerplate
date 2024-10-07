@@ -1,0 +1,139 @@
+import {
+  Body,
+  ClassSerializerInterceptor,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Put,
+  Query,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common'
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
+
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard'
+import type { BaseApiResponse } from '../../shared/dtos/base-api-response.dto'
+import {
+  BaseApiErrorResponse,
+  SwaggerBaseApiResponse,
+} from '../../shared/dtos/base-api-response.dto'
+import { AppLogger } from '../../shared/logger/logger.service'
+import { ReqContext } from '../../shared/request-context/req-context.decorator'
+import { RequestContext } from '../../shared/request-context/request-context.dto'
+import { {{capitalize name}}CreateInput } from '../dtos/{{name}}-create-input.dto'
+import { {{capitalize name}}Output } from '../dtos/{{name}}-output.dto'
+import { {{capitalize name}}ParamsDto } from '../dtos/{{name}}-params.dto'
+import { {{capitalize name}}UpdateInput } from '../dtos/{{name}}-update-input.dto'
+import { {{capitalize name}}Service } from '../service/{{name}}.service'
+
+@Controller('{{name}}s')
+@ApiTags('{{name}}s')
+export class {{capitalize name}}Controller {
+  constructor(
+    private {{name}}Service: {{capitalize name}}Service,
+    private logger: AppLogger,
+  ) {
+    this.logger.setContext({{capitalize name}}Controller.name)
+  }
+
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @UseInterceptors(ClassSerializerInterceptor)
+  @ApiOperation({
+      summary: 'Get {{name}}s as list API',
+    })
+    @ApiResponse({
+      status: HttpStatus.OK,
+      description: 'Get {{name}}s list',
+      type: SwaggerBaseApiResponse([{{capitalize name}}Output]),
+    })
+    async getAll{{capitalize name}}s(
+      @ReqContext() ctx: RequestContext,
+      @Query() query: {{capitalize name}}ParamsDto,
+    ): Promise<BaseApiResponse<{{capitalize name}}Output[]>> {
+      this.logger.log(ctx, `${this.getAll{{capitalize name}}s.name} was called`)
+
+      const { {{name}}s, count } = await this.{{name}}Service.getAll{{capitalize name}}s(ctx, query)
+
+      return {
+        data: {{name}}s,
+        meta: { total: count, page: query.page, limit: query.limit },
+      }
+    }
+
+    @Get(':id')
+    @UseGuards(JwtAuthGuard)
+    @ApiOperation({
+      summary: 'Get {{name}} by id API',
+    })
+    @ApiResponse({
+      status: HttpStatus.OK,
+      type: SwaggerBaseApiResponse({{capitalize name}}Output),
+    })
+    @ApiResponse({
+      status: HttpStatus.NOT_FOUND,
+      type: BaseApiErrorResponse,
+    })
+    async get{{capitalize name}}(
+      @ReqContext() ctx: RequestContext,
+      @Param('id') id: string,
+    ): Promise<BaseApiResponse<{{capitalize name}}Output>> {
+      this.logger.log(ctx, `${this.get{{capitalize name}}.name} was called`)
+
+      const user = await this.{{name}}Service.get{{capitalize name}}ById(ctx, id)
+
+      return { data: user, meta: {} }
+    }
+
+    @Post()
+    @UseGuards(JwtAuthGuard)
+    @HttpCode(HttpStatus.CREATED)
+    @UseInterceptors(ClassSerializerInterceptor)
+    @ApiOperation({
+      summary: 'Create {{name}} API',
+    })
+    @ApiResponse({
+      status: HttpStatus.CREATED,
+      description: 'Create a new {{name}}',
+      type: SwaggerBaseApiResponse({{capitalize name}}Output),
+    })
+    async create{{capitalize name}}(
+      @ReqContext() ctx: RequestContext,
+      @Body() input: {{capitalize name}}CreateInput,
+    ): Promise<BaseApiResponse<{{capitalize name}}Output>> {
+      this.logger.log(ctx, `${this.create{{capitalize name}}.name} was called`)
+
+      const {{name}} = await this.{{name}}Service.create{{capitalize name}}(ctx, input)
+
+      return { data: {{name}}, meta: {} }
+    }
+
+    @Put(':id')
+    @UseGuards(JwtAuthGuard)
+    @HttpCode(HttpStatus.OK)
+    @UseInterceptors(ClassSerializerInterceptor)
+    @ApiOperation({
+      summary: 'Update {{name}} API',
+    })
+    @ApiResponse({
+      status: HttpStatus.OK,
+      description: 'Update a {{name}}',
+      type: SwaggerBaseApiResponse({{capitalize name}}Output),
+    })
+    async update{{capitalize name}}(
+      @ReqContext() ctx: RequestContext,
+      @Param('id', ParseUUIDPipe) id: string,
+      @Body() input: {{capitalize name}}UpdateInput,
+    ): Promise<BaseApiResponse<{{capitalize name}}Output>> {
+      this.logger.log(ctx, `${this.update{{capitalize name}}.name} was called`)
+
+      const {{name}} = await this.{{name}}Service.update{{capitalize name}}(ctx, id, input)
+
+      return { data: {{name}}, meta: {} }
+  }
+}

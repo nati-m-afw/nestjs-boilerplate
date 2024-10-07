@@ -1,0 +1,22 @@
+import { ApiProperty } from '@nestjs/swagger'
+import { Expose, Type } from 'class-transformer'
+
+import { DataLookupOutput } from '../../data-lookup/dtos/data-lookup-output.dto'
+import { AbstractDto } from '../../shared/dtos/abstract.dto'
+import { UserOutput } from '../../user/dtos/user-output.dto'
+
+export class {{capitalize name}}Output extends AbstractDto {
+  @Expose()
+  @ApiProperty()
+  title: string
+
+  @Expose()
+  @Type(() => DataLookupOutput)
+  @ApiProperty({ type: () => DataLookupOutput })
+  state: DataLookupOutput
+
+  @Expose()
+  @Type(() => UserOutput)
+  @ApiProperty({ type: () => UserOutput })
+  createdBy: UserOutput
+}

@@ -1,0 +1,22 @@
+services:  
+  db:
+    image: postgres:15.3-alpine3.18
+    container_name: db
+    restart: always
+    environment:
+      POSTGRES_USER: $DB_USER
+      POSTGRES_PASSWORD: $DB_PASS
+      POSTGRES_DB: $DB_NAME
+      TZ: $TZ
+    ports: # TODO: remove this port mapping in production
+      - $DB_PORT:$DB_PORT
+    command: -p $DB_PORT
+    env_file:
+      - .env
+    volumes:
+      - ./db/data:/var/lib/postgresql/data
+      - ./db/prod-conf/init-data.sh:/docker-entrypoint-initdb.d/init-data.sh
+
+networks:
+  default:
+    name: netrunner

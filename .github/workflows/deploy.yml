@@ -1,0 +1,33 @@
+name: Deploy on HahuCloud
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: deploy-via-ssh
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.HOST_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /root/apps/
+            git config --global user.email "gh.action@infratech.technology"
+            git config --global user.name "GitHub Action"
+            eval `ssh-agent -s`
+            ssh-add ~/.ssh/github
+            git pull origin main
+            docker compose build
+            docker compose down
+            docker compose up -d
+            sleep 60
+            docker compose exec app yarn migration:run
+            docker compose exec app yarn migration:seed
+            docker compose exec app yarn migration:status

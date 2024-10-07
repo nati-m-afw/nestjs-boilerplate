@@ -1,0 +1,47 @@
+name: Release on Version Bump (Fail if Exists)
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: node_setup
+        name: Use Node.js 20.11
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.11
+
+      - id: package_version
+        name: Get package version
+        run: |
+          echo "PACKAGE_VERSION=$(node -p "require('./backend/package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - id: tag_exists
+        name: Check if tag already exists
+        run: |
+          TAG="${{ steps.package_version.outputs.PACKAGE_VERSION }}"
+          if git show-ref --tags --verify --quiet "refs/tags/${TAG}"; then
+            echo "Tag ${TAG} exists"
+            exit 1
+          else
+            echo "Tag ${TAG} does not exist"
+          fi
+
+      - id: create_release
+        name: Create release (if tag doesn't exist)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ steps.package_version.outputs.PACKAGE_VERSION }}" \
+              --repo="$GITHUB_REPOSITORY" \
+              --title="${{ steps.package_version.outputs.PACKAGE_VERSION }}" \
+              --generate-notes

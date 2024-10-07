@@ -1,0 +1,113 @@
+import { Injectable, NotFoundException } from '@nestjs/common'
+import { Brackets, DataSource, Repository } from 'typeorm'
+
+import type { SortOrder } from '../../shared/constants/sort-order'
+import { {{capitalize name}} } from '../entities/{{name}}.entity'
+
+interface I{{capitalize name}}Filters {
+  limit: number
+  offset: number
+  search?: string
+  state?: string
+  createdBy?: string
+  createdAt?: Date
+  updatedAt?: Date
+  sortBy?: string
+  sortOrder?: SortOrder
+  getAll?: boolean
+}
+
+@Injectable()
+export class {{capitalize name}}Repository extends Repository<{{capitalize name}}> {
+  constructor(private dataSource: DataSource) {
+    super({{capitalize name}}, dataSource.createEntityManager())
+  }
+
+  async getWithFilters({
+    limit,
+    offset,
+    search,
+    state,
+    createdBy,
+    createdAt,
+    updatedAt,
+    sortBy,
+    sortOrder,
+    getAll,
+  }: I{{capitalize name}}Filters): Promise<[{{capitalize name}}[], number]> {
+    const queryBuilder = this.createQueryBuilder('{{name}}')
+      .leftJoinAndSelect('{{name}}.state', 'state')
+      .leftJoinAndSelect('{{name}}.createdBy', 'createdBy')
+
+    if (search) {
+      queryBuilder.andWhere(
+        new Brackets((qb) => {
+          qb.where('{{name}}.title ILIKE :search', {
+            search: `%${search}%`,
+          })
+        }),
+      )
+    }
+
+    if (createdAt) {
+      queryBuilder.andWhere('{{name}}.createdAt >= :createdAt', { createdAt })
+    }
+
+    if (updatedAt) {
+      queryBuilder.andWhere('{{name}}.createdAt <= :updatedAt', { updatedAt })
+    }
+
+    if (getAll) {
+      queryBuilder.andWhere(
+        new Brackets((qb) => {
+          qb.where('createdBy.id = :createdBy', { createdBy }).orWhere(
+            'state.id = :state',
+            { state },
+          )
+        }),
+      )
+    } else {
+      if (state) {
+        queryBuilder.andWhere('state.id = :state', { state })
+      }
+
+      if (createdBy) {
+        queryBuilder.andWhere('createdBy.id = :createdBy', { createdBy })
+      }
+    }
+
+    if (sortBy) {
+      queryBuilder.orderBy(
+        `{{name}}.${sortBy}`,
+        (sortOrder?.toUpperCase() ?? 'DESC') as SortOrder,
+      )
+    }
+
+    return queryBuilder.take(limit).skip(offset).getManyAndCount()
+  }
+
+  async getById(id: string): Promise<{{capitalize name}}> {
+    const {{name}} = await this.findOne({
+      where: { id },
+    })
+
+    if (!{{name}}) {
+      throw new NotFoundException()
+    }
+
+    return {{name}}
+  }
+
+  async getByIdWithRelations(id: string): Promise<{{capitalize name}}> {
+    const {{name}} = await this.findOne({
+      where: { id },
+      relations: ['state', 'createdBy'],
+    })
+
+    if (!{{name}}) {
+      throw new NotFoundException()
+    }
+
+    return {{name}}
+  }
+}

@@ -1,0 +1,24 @@
+services:
+  api:
+    build:
+      context: ./apps/api
+      args:
+        - APP_PORT
+        - SENTRY_ORG
+        - SENTRY_PROJECT
+        - SENTRY_AUTH_TOKEN
+    container_name: api
+    restart: always
+    volumes:
+      - ./apps/api/src:/home/backend/src
+      - ./data:/home/data
+    command: yarn start
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+
+networks:
+  default:
+    external: true
