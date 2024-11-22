@@ -19,7 +19,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /root/apps/
-            git config --global user.email "gh.action@infratech.technology"
+            git config --global user.email "gh.action@company.com"
             git config --global user.name "GitHub Action"
             eval `ssh-agent -s`
             ssh-add ~/.ssh/github
