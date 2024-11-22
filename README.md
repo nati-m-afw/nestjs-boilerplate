@@ -1,63 +1,134 @@
-<p align="center"><img align="center" style="width:320px" src="https://minimals.cc/favicon/apple-touch-icon.png"/></p><br/>
-<p align="center"><strong style="font-size: 40px">CHANGE_ME</strong></p><br/>
+<p align="center"><img align="center" style="width:320px" src="https://placehold.co/320x320"/></p><br/>
+<p align="center"><strong style="font-size: 40px">NestJS API Boilerplate</strong></p><br/>
 
-# CHANGE_ME - API 
+# Modern NestJS API Boilerplate
 
-## Table of Contents
+A production-ready NestJS API boilerplate with TypeORM, Redis, PostgreSQL, and Docker support. Based on [nestjs-starter-rest-api](https://github.com/monstar-lab-oss/nestjs-starter-rest-api) by Monstar Lab.
 
-- [Services](#services)
-- [Getting started](#getting-started)
-- [Development](#development)
+## Features
 
+- 🚀 NestJS Framework
+- 🔐 JWT Authentication
+- 🎯 TypeORM with PostgreSQL
+- 📝 Swagger API Documentation
+- 🐳 Docker & Docker Compose
+- 🔄 Redis as a message queue
+- 🔍 E2E Testing Setup
+- 🛡️ Role-Based Access Control (RBAC)
+- 🔄 Database Migrations & Seeding
+- 🌐 NGINX Reverse Proxy
 
-## Services
-- Nest JS API Services
-- Postgres DB
-- Redis
-- NGINX Proxy
+## Prerequisites
 
+- Docker & Docker Compose
+- Node.js 16+
+- Yarn package manager
 
-## Getting started
+## Getting Started
+
+1. Clone the repository
+2. Create environment variables file:
 
 ```bash
-
-# 1. Create Environment variables file.
 cp .env.example .env
+```
 
-# 2. Enable memory overcommit
+3. Configure Redis (required for queue system):
+```bash
 ./queue/prod-conf/init-redis.sh
 ```
 
-
-
-### Development
-1. Start docker containers
+4. Start the development environment:
 ```bash
 make up
 ```
 
-2. See backend logs
+## Development Commands
+
+### Container Management
 ```bash
+# Start services
+make up
+
+# View logs
 make logs
-```
 
-3. Stop docker containers
-```bash
+# Stop services
 make down
+
+# Rebuild services
+make build
 ```
 
-4. Run migrations
+### Database Operations
 ```bash
+# Run migrations
 make dc exec app yarn migration:run
-```
 
-5. Seed database (Careful, this will have permanent repercussion)
-```bash
+# Seed database with initial data
 make dc exec app yarn migration:seed
+
+# Generate new migration
+make dc exec app yarn migration:generate --name=MigrationName
 ```
 
-6. Create nest.js module
+### Code Generation
 ```bash
+# Generate new NestJS module
 make api-gen
 ```
-Run `make` to see available commands
+
+## Project Structure
+
+```
+.
+├── apps/api/          # NestJS application
+│   ├── src/          # Source code
+│   ├── test/         # E2E tests
+│   └── migrations/   # Database migrations
+├── proxy/            # NGINX configuration
+├── queue/            # Redis configuration
+└── docker-compose.yml
+```
+
+## Available Services
+
+- **API**: NestJS application (default: port 5969)
+- **PostgreSQL**: Database server
+- **Redis**: Caching and queue management
+- **NGINX**: Reverse proxy
+
+## Documentation
+
+### API Documentation
+API documentation is available at `/docs` endpoint when the server is running.
+
+### Project Documentation
+Detailed documentation is available in the `docs/` directory:
+
+- **Architecture Guide**: Comprehensive overview of the module structure, including:
+  - Module components and layers
+  - Security features
+  - Best practices
+  - Common design patterns
+
+- **Makefile Guide**: Documentation for all available make commands and environment configurations:
+  - Available commands and their usage
+  - Environment configuration options
+  - Customization guidelines
+  - Docker Compose service management
+
+For architecture details, see [docs/architecture.md](docs/architecture.md)
+For build and deployment commands, see [docs/makefile.md](docs/makefile.md)
+
+## Testing
+
+```bash
+# Run e2e tests
+make dc exec app yarn test:e2e
+```
+
+For more commands, run:
+```bash
+make help
+```
