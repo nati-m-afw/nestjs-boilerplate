@@ -19,6 +19,7 @@
     "incremental": false,
     "strictNullChecks": true,
     "inlineSources": true,
+    "noUncheckedIndexedAccess": true,
     "sourceRoot": "/"
   },
   "include": ["src/**/*"],
